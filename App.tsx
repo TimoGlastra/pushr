@@ -1,19 +1,47 @@
 import React from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { SafeAreaView } from 'react-native'
+import { AppearanceProvider, useColorScheme } from 'react-native-appearance'
+import * as eva from '@eva-design/eva'
+import {
+  ApplicationProvider,
+  IconRegistry,
+  Layout,
+} from '@ui-kitten/components'
+import { NavigationContainer } from '@react-navigation/native'
+import { EvaIconsPack } from '@ui-kitten/eva-icons'
+import { createStackNavigator } from '@react-navigation/stack'
+import { PushScreen } from './src/screens/Push/PushScreen'
 
-export default function App() {
+const { Navigator, Screen } = createStackNavigator()
+
+const StackNavigator = () => (
+  <Navigator headerMode="none">
+    <Screen name="Push" component={PushScreen} />
+  </Navigator>
+)
+
+const App = () => {
+  const colorScheme = useColorScheme()
+  const theme = colorScheme === 'light' ? eva.light : eva.dark
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-    </View>
+    <>
+      <IconRegistry icons={EvaIconsPack} />
+      <ApplicationProvider {...eva} theme={theme}>
+        <Layout style={{ flex: 1 }}>
+          <SafeAreaView style={{ flex: 1 }}>
+            <NavigationContainer>
+              <StackNavigator />
+            </NavigationContainer>
+          </SafeAreaView>
+        </Layout>
+      </ApplicationProvider>
+    </>
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-})
+export default () => (
+  <AppearanceProvider>
+    <App />
+  </AppearanceProvider>
+)
