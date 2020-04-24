@@ -1,5 +1,5 @@
 import React from 'react'
-import { SafeAreaView } from 'react-native'
+import { SafeAreaView, StatusBar } from 'react-native'
 import { AppearanceProvider, useColorScheme } from 'react-native-appearance'
 import * as eva from '@eva-design/eva'
 import {
@@ -23,9 +23,11 @@ const StackNavigator = () => (
 const App = () => {
   const colorScheme = useColorScheme()
   const theme = colorScheme === 'light' ? eva.light : eva.dark
+  const barStyle = colorScheme === 'light' ? 'dark-content' : 'light-content'
 
   return (
     <>
+      <StatusBar barStyle={barStyle} />
       <IconRegistry icons={EvaIconsPack} />
       <ApplicationProvider {...eva} theme={theme}>
         <Layout style={{ flex: 1 }}>

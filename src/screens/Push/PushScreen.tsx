@@ -1,160 +1,114 @@
-import React, { useRef, useEffect, useState } from 'react'
-import { Layout, Text, Button, Icon } from '@ui-kitten/components'
-import { View } from 'react-native'
+import React, {
+  useState,
+  useReducer,
+  useEffect,
+  PropsWithChildren,
+} from 'react'
+import { KeyboardAvoidingView, ScrollView } from 'react-native'
+import { Layout, Text, useTheme } from '@ui-kitten/components'
+import { Timer, Pusher, PushButton } from './components'
+import { Container } from '../../components/Container'
+import { PushProgress } from '../../components/PushProgress'
+import { stepsReducer } from './stepsReducer'
 import { useTimer } from 'use-timer'
 
-const NextButton = ({
-  icon,
-  label,
-  onPress,
-}: {
-  icon: string
-  label: string
-  onPress: () => void
-}) => {
-  const CIcon = (props: any) => <Icon {...props} name={icon} />
-  return (
-    <Button
-      style={{ marginHorizontal: 40 }}
-      accessoryRight={CIcon}
-      onPress={onPress}
-      appearance="outline"
-      size="giant"
-      status="success"
-    >
-      {label}
-    </Button>
-  )
-}
-
-function secondsToMinutesSeconds(seconds: number): string {
-  if (seconds < 60) return seconds.toString()
-
-  const minutes = Math.floor((seconds % 3600) / 60)
-    .toString()
-    .padStart(2, '0')
-
-  const rSeconds = Math.floor(seconds % 60)
-    .toString()
-    .padStart(2, '0')
-
-  return `${minutes}:${rSeconds}`
-}
-
-const Timer = ({ time }: { time: number }) => {
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-      }}
-    >
-      <View
-        style={{
-          flex: 1,
-          alignItems: 'flex-end',
-          paddingRight: 5,
-          marginRight: 40,
-        }}
-      >
-        <Icon
-          style={{ height: 80, width: 80 }}
-          name="clock-outline"
-          fill="white"
-        />
-      </View>
-
-      <Text style={{ flex: 1, paddingLeft: 5, marginLeft: -40 }} category="h1">
-        {secondsToMinutesSeconds(time)}
-      </Text>
-    </View>
-  )
-}
-
-const Pusher = ({ noOfPushups }: { noOfPushups: number }) => {
-  const ref = useRef<Icon<object>>(null)
-
-  useEffect(() => {
-    const onDone = () => {
-      setTimeout(() => {
-        ref.current && ref.current.startAnimation(onDone)
-      }, 1500)
-    }
-    ref.current && ref.current.startAnimation(onDone)
-  }, [])
-
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-      }}
-    >
-      <View
-        style={{
-          flex: 1,
-          alignItems: 'flex-end',
-          paddingRight: 5,
-          marginRight: 40,
-        }}
-      >
-        <Icon
-          ref={ref}
-          style={{ height: 80, width: 80 }}
-          name="arrowhead-down"
-          fill="white"
-          animationConfig={{ cycles: 1 }}
-          animation="pulse"
-        />
-      </View>
-
-      <Text style={{ flex: 1, paddingLeft: 5, marginLeft: -40 }} category="h1">
-        {noOfPushups}
-      </Text>
-    </View>
-  )
-}
-
 export function PushScreen() {
-  const [noOfPushUps, setNoOfPushUps] = useState(20)
-  const { time, start, pause, reset, isRunning } = useTimer({
-    initialTime: 100,
+  const steps = [10, 10, 15, 20]
+  const [state, dispatch] = useReducer(stepsReducer, {
+    steps,
+    currentStep: 0,
+    restSecondsBetweenSteps: 15,
+    isResting: false,
+    isDone: false,
+  })
+  const { reset, start, time } = useTimer({
     timerType: 'DECREMENTAL',
+    initialTime: state.restSecondsBetweenSteps,
+    onTimeOver: onTimeOver,
     endTime: 0,
   })
 
-  const onButtonPress = () => {
-    reset()
+  function onTimeOver() {
+    dispatch({ type: 'END_REST' })
   }
 
+  let render = null
+
   useEffect(() => {
-    start()
-  }, [])
+    if (state.isResting) {
+      reset()
+      start()
+    }
+  }, [state.isResting])
+
+  if (state.isResting) {
+    const skipResting = () => dispatch({ type: 'END_REST' })
+    render = (
+      <>
+        <Timer seconds={time} />
+        <PushButton icon="arrowhead-right" label="SKIP" onPress={skipResting} />
+      </>
+    )
+  } else {
+    const completeStep = () => dispatch({ type: 'COMPLETE_CURRENT_STEP' })
+    render = (
+      <>
+        <Pusher noOfPushUps={state.steps[state.currentStep] || 0} />
+        <PushButton
+          icon="checkmark"
+          label="DONE"
+          disabled={state.isDone}
+          onPress={completeStep}
+        />
+      </>
+    )
+  }
 
   return (
-    <Layout
-      style={{
-        flex: 1,
-        justifyContent: 'space-between',
-        paddingTop: 40,
-        paddingBottom: 20,
-      }}
+    <PushScreenWrapper>
+      <Container align="center">
+        <Text category="h1">{state.isResting ? 'Rest' : 'Push'}</Text>
+        <PushProgress steps={state.steps} currentStep={state.currentStep} />
+      </Container>
+
+      {render}
+    </PushScreenWrapper>
+  )
+}
+
+function PushScreenWrapper({ children }: PropsWithChildren<{}>) {
+  const theme = useTheme()
+  return (
+    <ScrollView
+      keyboardShouldPersistTaps="never"
+      style={{ flex: 1, display: 'flex' }}
+      contentContainerStyle={{ flex: 1, display: 'flex' }}
+      scrollEnabled={false}
     >
-      <View style={{ alignItems: 'center' }}>
-        <Text category="h1">Push</Text>
-
-        <Text category="h5" appearance="hint">
-          20 / 100 completed
-        </Text>
-      </View>
-
-      {isRunning ? <Timer time={time} /> : <Pusher noOfPushups={noOfPushUps} />}
-
-      <NextButton
-        icon={isRunning ? 'arrowhead-right' : 'checkmark'}
-        label={isRunning ? 'SKIP' : 'DONE'}
-        onPress={onButtonPress}
-      />
-    </Layout>
+      <KeyboardAvoidingView
+        style={{
+          flex: 1,
+          display: 'flex',
+          backgroundColor: theme['background-basic-color-1'],
+        }}
+        contentContainerStyle={{
+          flex: 1,
+          display: 'flex',
+          backgroundColor: 'green',
+        }}
+        behavior="position"
+      >
+        <Layout
+          style={{
+            flex: 1,
+            justifyContent: 'space-between',
+            paddingTop: 40,
+            paddingBottom: 20,
+          }}
+        >
+          {children}
+        </Layout>
+      </KeyboardAvoidingView>
+    </ScrollView>
   )
 }
