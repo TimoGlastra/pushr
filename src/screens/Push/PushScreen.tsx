@@ -1,16 +1,14 @@
-import React, {
-  useState,
-  useReducer,
-  useEffect,
-  PropsWithChildren,
-} from 'react'
+import React, { useReducer, PropsWithChildren } from 'react'
 import { KeyboardAvoidingView, ScrollView } from 'react-native'
 import { Layout, Text, useTheme } from '@ui-kitten/components'
-import { Timer, Pusher, PushButton } from './components'
 import { Container } from '../../components/Container'
 import { PushProgress } from '../../components/PushProgress'
-import { stepsReducer } from './stepsReducer'
-import { useTimer } from 'use-timer'
+import {
+  stepsReducer,
+  pushupsForCurrentStepSelector,
+  isFinalStepSelector,
+} from './stepsReducer'
+import { PusherSteps } from './components/PusherSteps'
 
 export function PushScreen() {
   const steps = [10, 10, 15, 20]
@@ -21,46 +19,36 @@ export function PushScreen() {
     isResting: false,
     isDone: false,
   })
-  const { reset, start, time } = useTimer({
-    timerType: 'DECREMENTAL',
-    initialTime: state.restSecondsBetweenSteps,
-    onTimeOver: onTimeOver,
-    endTime: 0,
-  })
 
-  function onTimeOver() {
-    dispatch({ type: 'END_REST' })
-  }
+  const endRest = () => dispatch({ type: 'END_REST' })
+  const completeCurrentStep = () => dispatch({ type: 'COMPLETE_CURRENT_STEP' })
+  const noOfPushUps = pushupsForCurrentStepSelector(state)
 
   let render = null
 
-  useEffect(() => {
-    if (state.isResting) {
-      reset()
-      start()
-    }
-  }, [state.isResting])
-
   if (state.isResting) {
-    const skipResting = () => dispatch({ type: 'END_REST' })
     render = (
-      <>
-        <Timer seconds={time} />
-        <PushButton icon="arrowhead-right" label="SKIP" onPress={skipResting} />
-      </>
+      <PusherSteps.Timer
+        restTime={state.restSecondsBetweenSteps}
+        onEnd={endRest}
+        onSkip={endRest}
+      />
     )
-  } else {
-    const completeStep = () => dispatch({ type: 'COMPLETE_CURRENT_STEP' })
+  } else if (isFinalStepSelector(state)) {
     render = (
-      <>
-        <Pusher noOfPushUps={state.steps[state.currentStep] || 0} />
-        <PushButton
-          icon="checkmark"
-          label="DONE"
-          disabled={state.isDone}
-          onPress={completeStep}
-        />
-      </>
+      <PusherSteps.InputPusher
+        noOfPushUps={noOfPushUps}
+        onDone={completeCurrentStep}
+      />
+    )
+  } else if (state.isDone) {
+    render = null
+  } else {
+    render = (
+      <PusherSteps.Pusher
+        noOfPushUps={noOfPushUps}
+        onDone={completeCurrentStep}
+      />
     )
   }
 

@@ -6,9 +6,11 @@ import {
 import { NavigationContainer } from '@react-navigation/native'
 import { AppIntro } from './screens/AppIntro/AppIntro'
 import { PushScreen } from './screens/Push/PushScreen'
+import { Dashboard } from './screens/Dashboard/Dashboard'
 
 export type AppStackParamList = {
   Push: undefined
+  Dashboard: undefined
 }
 
 export type RootStackParamList = {
@@ -26,7 +28,8 @@ const AppStack = createStackNavigator<AppStackParamList>()
 function AppNavigation() {
   return (
     <AppStack.Navigator initialRouteName="Push" headerMode="none">
-      <AppStack.Screen name="Push" component={PushScreen}></AppStack.Screen>
+      <AppStack.Screen name="Dashboard" component={Dashboard} />
+      <AppStack.Screen name="Push" component={PushScreen} />
     </AppStack.Navigator>
   )
 }

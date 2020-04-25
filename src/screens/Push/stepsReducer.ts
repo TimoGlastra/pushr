@@ -44,4 +44,18 @@ function stepsReducer(state: State, action: Action): State {
   }
 }
 
-export { Action, State, stepsReducer }
+function isFinalStepSelector(state: State): boolean {
+  return state.currentStep + 1 === state.steps.length
+}
+
+function pushupsForCurrentStepSelector(state: State) {
+  return state.steps[state.currentStep]
+}
+
+export {
+  Action,
+  State,
+  stepsReducer,
+  isFinalStepSelector,
+  pushupsForCurrentStepSelector,
+}

@@ -20,8 +20,7 @@ function useFirstLaunch() {
     let didCancel = false
 
     async function getStorage() {
-      // const alreadyLaunched = await AsyncStorage.getItem('alreadyLaunched')
-      const alreadyLaunched = null
+      const alreadyLaunched = await AsyncStorage.getItem('alreadyLaunched')
 
       if (!didCancel) {
         if (alreadyLaunched === null) {
