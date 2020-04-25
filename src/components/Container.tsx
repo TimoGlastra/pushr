@@ -1,5 +1,6 @@
 import React, { PropsWithChildren } from 'react'
 import { View, ViewProps, StyleSheet } from 'react-native'
+import { useTheme } from '@ui-kitten/components'
 
 interface ContainerProps extends ViewProps {
   flex?: true | number
@@ -12,6 +13,7 @@ interface ContainerProps extends ViewProps {
     | 'space-between'
     | 'space-around'
     | 'space-evenly'
+  background?: string
 }
 
 function Container({
@@ -21,8 +23,10 @@ function Container({
   style,
   flex,
   justify,
+  background,
   ...props
 }: PropsWithChildren<ContainerProps>) {
+  const theme = useTheme()
   return (
     <View
       style={StyleSheet.flatten([
@@ -31,6 +35,7 @@ function Container({
           alignItems: align,
           flex: flex === true ? 1 : flex,
           justifyContent: justify,
+          backgroundColor: theme[background || ''] || background,
         },
         style,
       ])}

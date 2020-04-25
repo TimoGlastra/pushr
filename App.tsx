@@ -1,5 +1,6 @@
 import React from 'react'
 import { SafeAreaView, StatusBar } from 'react-native'
+import { AppLoading } from 'expo'
 import { AppearanceProvider, useColorScheme } from 'react-native-appearance'
 import * as eva from '@eva-design/eva'
 import {
@@ -7,23 +8,19 @@ import {
   IconRegistry,
   Layout,
 } from '@ui-kitten/components'
-import { NavigationContainer } from '@react-navigation/native'
 import { EvaIconsPack } from '@ui-kitten/eva-icons'
-import { createStackNavigator } from '@react-navigation/stack'
-import { PushScreen } from './src/screens/Push/PushScreen'
-
-const { Navigator, Screen } = createStackNavigator()
-
-const StackNavigator = () => (
-  <Navigator headerMode="none">
-    <Screen name="Push" component={PushScreen} />
-  </Navigator>
-)
+import { useFirstLaunch } from './src/utils/hooks'
+import { Navigation } from './src/Navigation'
 
 const App = () => {
   const colorScheme = useColorScheme()
   const theme = colorScheme === 'light' ? eva.light : eva.dark
+  const isFirstLaunch = useFirstLaunch()
   const barStyle = colorScheme === 'light' ? 'dark-content' : 'light-content'
+
+  if (isFirstLaunch === null) {
+    return <AppLoading onError={console.warn} />
+  }
 
   return (
     <>
@@ -32,9 +29,7 @@ const App = () => {
       <ApplicationProvider {...eva} theme={theme}>
         <Layout style={{ flex: 1 }}>
           <SafeAreaView style={{ flex: 1 }}>
-            <NavigationContainer>
-              <StackNavigator />
-            </NavigationContainer>
+            <Navigation isFirstLaunch={isFirstLaunch} />
           </SafeAreaView>
         </Layout>
       </ApplicationProvider>

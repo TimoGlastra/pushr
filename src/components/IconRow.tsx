@@ -25,7 +25,9 @@ function IconRow({ icon, children }: PropsWithChildren<IconRowProps>) {
         <FixedIcon name={icon} />
       </Container>
 
-      <Container flex>{children}</Container>
+      <Container flex align="baseline">
+        {children}
+      </Container>
     </Container>
   )
 }
